@@ -26,8 +26,7 @@ public class SocketInputStream extends InputStream {
     }
 
     // 从输入流中解析出 request line
-    public void readRequestLine(HttpRequestLine requestLine)
-            throws IOException {
+    public void readRequestLine(HttpRequestLine requestLine) throws IOException {
         int chr = 0;
         // 跳过空行
         do {
@@ -111,8 +110,7 @@ public class SocketInputStream extends InputStream {
         requestLine.protocolEnd = readCount;
     }
 
-    public void readHeader(HttpHeader header)
-            throws IOException {
+    public void readHeader(HttpHeader header) throws IOException {
         int chr = read();
         // Skipping CR
         if ((chr == CR) || (chr == LF)) {

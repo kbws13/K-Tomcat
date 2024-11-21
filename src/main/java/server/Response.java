@@ -20,14 +20,15 @@ public class Response implements ServletResponse {
     long contentLength = -1;
     String charset = null;
     String characterEncoding = null;
-    private Request request;
+    private HttpRequest request;
     private OutputStream output;
 
+    // 以输出流作为接收参数
     public Response(OutputStream output) {
         this.output = output;
     }
 
-    public void setRequest(Request request) {
+    public void setRequest(HttpRequest request) {
         this.request = request;
     }
 

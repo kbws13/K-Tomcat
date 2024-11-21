@@ -1,5 +1,8 @@
 package server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -10,6 +13,8 @@ import java.net.Socket;
  * @description: 负责调用 Servlet
  */
 public class HttpProcessor implements Runnable {
+
+    private static final Logger log = LoggerFactory.getLogger(HttpProcessor.class);
 
     Socket socket;
 
@@ -24,17 +29,17 @@ public class HttpProcessor implements Runnable {
     public void process(Socket socket) {
         try {
             Thread.sleep(3000);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
+        } catch (InterruptedException e) {
+            log.error("error: ", e);
         }
-        InputStream input = null;
-        OutputStream output = null;
+        InputStream input;
+        OutputStream output;
         try {
             input = socket.getInputStream();
             output = socket.getOutputStream();
             // 创建请求对象并解析
-            Request request = new Request(input);
-            request.parse();
+            HttpRequest request = new HttpRequest(input);
+            request.parse(socket);
             // 创建响应对象
             Response response = new Response(output);
             response.setRequest(request);
@@ -51,7 +56,7 @@ public class HttpProcessor implements Runnable {
             // 关闭 socket
             socket.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("error: ", e);
         }
     }
 
@@ -61,7 +66,7 @@ public class HttpProcessor implements Runnable {
             try {
                 wait();
             } catch (InterruptedException e) {
-
+                log.error("error: ", e);
             }
         }
         // 获取到新的 socket
@@ -78,7 +83,7 @@ public class HttpProcessor implements Runnable {
             try {
                 wait();
             } catch (InterruptedException e) {
-
+                log.error("error: ", e);
             }
         }
         // 获得这个新的Socket

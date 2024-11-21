@@ -1,5 +1,8 @@
 package server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
@@ -19,11 +22,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HttpRequest implements HttpServletRequest {
 
+    private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
+
+
     private InputStream input;
     private SocketInputStream sis;
     private String uri;
     InetAddress address;
     int port;
+    // 保存头部信息和参数
     protected HashMap<String, String> headers = new HashMap<>();
     protected Map<String, String> parameters = new ConcurrentHashMap<>();
     HttpRequestLine requestLine = new HttpRequestLine();
@@ -38,10 +45,8 @@ public class HttpRequest implements HttpServletRequest {
             parseConnection(socket);
             this.sis.readRequestLine(requestLine);
             parseHeaders();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ServletException e) {
-            e.printStackTrace();
+        } catch (IOException | ServletException e) {
+            log.error("error: ", e);
         }
         this.uri = new String(requestLine.uri, 0, requestLine.uriEnd);
     }
@@ -62,7 +67,7 @@ public class HttpRequest implements HttpServletRequest {
                     throw new ServletException("httpProcessor.parseHeaders.colon");
                 }
             }
-            String name = new String(header.name,0,header.nameEnd);
+            String name = new String(header.name, 0, header.nameEnd);
             String value = new String(header.value, 0, header.valueEnd);
             // Set the corresponding request headers
             if (name.equals(DefaultHeaders.ACCEPT_LANGUAGE_NAME)) {

@@ -1,6 +1,8 @@
 package server;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.Servlet;
 import java.io.File;
@@ -21,6 +23,8 @@ import java.util.Map;
  */
 public class ServletProcessor {
 
+    private static final Logger log = LoggerFactory.getLogger(ServletProcessor.class);
+
     // 响应头定义，里面包含变量
     private static String OKMessage = "HTTP/1.1 ${StatusCode} ${StatusName}\r\n" +
             "Content-Type: ${ContentType}\r\n" +
@@ -28,7 +32,7 @@ public class ServletProcessor {
             "Date: ${ZonedDateTime}\r\n" +
             "\r\n";
 
-    public void process(Request request, Response response) {
+    public void process(HttpRequest request, Response response) {
         // 获取 URI
         String uri = request.getUri();
         // 首先根据uri最后一个/号来定位，后面的字符串认为是servlet名字
@@ -45,33 +49,33 @@ public class ServletProcessor {
             urls[0] = new URL(null, repository, streamHandler);
             loader = new URLClassLoader(urls);
         } catch (IOException e) {
-            System.out.println(e.toString());
+            log.error("error: ", e);
         }
         // 获取 PrintWriter
         try {
             response.setCharacterEncoding("UTF-8");
             printWriter = response.getWriter();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("error: ", e);
         }
         //由上面的URLClassLoader加载这个servlet
         Class<?> servletClass = null;
         try {
             servletClass = loader.loadClass(servletName);
         } catch (ClassNotFoundException e) {
-            System.out.println(e.toString());
+            log.error("error: ", e);
         }
         // 生成响应头
         String head = composeResponseHead();
         printWriter.println(head);
         // 创建servlet新实例，然后调用service()，由它来写动态内容到响应体
-        Servlet servlet = null;
+        Servlet servlet;
         try {
             // 调用 servlet，由 servlet 写 response 体
             servlet = (Servlet) servletClass.newInstance();
             servlet.service(request, response);
         } catch (Exception e1) {
-            System.out.println(e1);
+            log.error("error: ", e1);
         }
     }
 

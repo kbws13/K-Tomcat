@@ -1,5 +1,8 @@
 package server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +19,10 @@ import java.util.Map;
  */
 public class Request implements ServletRequest {
 
+    private static final Logger log = LoggerFactory.getLogger(Request.class);
+    /**
+     * 接受请求的输入流
+     */
     private InputStream input;
 
     private String uri;
@@ -31,15 +38,17 @@ public class Request implements ServletRequest {
         try {
             i = input.read(buffer);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("error: ", e);
             i = -1;
         }
         for (int j = 0; j < i; j++) {
             request.append((char) buffer[j]);
         }
+        // 从输入的字符串中解析URI
         uri = parseUri(request.toString());
     }
 
+    // 根据协议格式，以空格为界，截取中间的一段，即为URI
     private String parseUri(String requestString) {
         int index1, index2;
         index1 = requestString.indexOf(' ');
