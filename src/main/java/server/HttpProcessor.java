@@ -27,11 +27,6 @@ public class HttpProcessor implements Runnable {
     }
 
     public void process(Socket socket) {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            log.error("error: ", e);
-        }
         InputStream input;
         OutputStream output;
         try {
@@ -40,8 +35,13 @@ public class HttpProcessor implements Runnable {
             // 创建请求对象并解析
             HttpRequest request = new HttpRequest(input);
             request.parse(socket);
+
+            // handle session
+            if (request.getSessionId() == null || request.getSessionId().isEmpty()) {
+                request.getSession(true);
+            }
             // 创建响应对象
-            Response response = new Response(output);
+            HttpResponse response = new HttpResponse(output);
             response.setRequest(request);
             // response.sendStaticResource();
             // 检查这是对servlet还是静态资源的请求

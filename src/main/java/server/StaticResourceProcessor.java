@@ -40,10 +40,10 @@ public class StaticResourceProcessor {
             "\r\n";
 
     // 处理过程很简单，先将响应头写入输出流，然后从文件中读取内容写入输出流
-    public void process(HttpRequest request, Response response) throws IOException {
+    public void process(HttpRequest request, HttpResponse response) throws IOException {
         byte[] bytes = new byte[BUFFER_SIZE];
         FileInputStream fis = null;
-        OutputStream output = null;
+        OutputStream output;
         try {
             output = response.getOutput();
             File file = new File(HttpServer.WEB_ROOT, request.getUri());

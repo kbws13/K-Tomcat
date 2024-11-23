@@ -32,7 +32,7 @@ public class ServletProcessor {
             "Date: ${ZonedDateTime}\r\n" +
             "\r\n";
 
-    public void process(HttpRequest request, Response response) {
+    public void process(HttpRequest request, HttpResponse response) {
         // 获取 URI
         String uri = request.getUri();
         // 首先根据uri最后一个/号来定位，后面的字符串认为是servlet名字
@@ -51,13 +51,9 @@ public class ServletProcessor {
         } catch (IOException e) {
             log.error("error: ", e);
         }
-        // 获取 PrintWriter
-        try {
-            response.setCharacterEncoding("UTF-8");
-            printWriter = response.getWriter();
-        } catch (IOException e) {
-            log.error("error: ", e);
-        }
+
+        response.setCharacterEncoding("UTF-8");
+
         //由上面的URLClassLoader加载这个servlet
         Class<?> servletClass = null;
         try {
@@ -65,28 +61,22 @@ public class ServletProcessor {
         } catch (ClassNotFoundException e) {
             log.error("error: ", e);
         }
-        // 生成响应头
-        String head = composeResponseHead();
-        printWriter.println(head);
+        // 回写头信息
+        try {
+            response.sendHeaders();
+        } catch (IOException e) {
+            log.error("error: ", e);
+        }
         // 创建servlet新实例，然后调用service()，由它来写动态内容到响应体
         Servlet servlet;
         try {
             // 调用 servlet，由 servlet 写 response 体
             servlet = (Servlet) servletClass.newInstance();
+            HttpRequestFacade requestFacade = new HttpRequestFacade(request);
+            HttpResponseFacade responseFacade = new HttpResponseFacade(response);
             servlet.service(request, response);
         } catch (Exception e1) {
             log.error("error: ", e1);
         }
-    }
-
-    // 生成响应头，根据协议格式替换变量
-    private String composeResponseHead() {
-        Map<String, Object> valuesMap = new HashMap<>();
-        valuesMap.put("StatusCode", "200");
-        valuesMap.put("StatusName", "OK");
-        valuesMap.put("ContentType", "text/html;charset=uft-8");
-        valuesMap.put("ZonedDateTime", DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now()));
-        StrSubstitutor sub = new StrSubstitutor(valuesMap);
-        return sub.replace(OKMessage);
     }
 }
